@@ -68,13 +68,7 @@ func CreateLibp2pHost(ctx context.Context, tcpPort, quicUdpPort string, psk []by
 
 	libp2phost, err := libp2p.New(ctx, options...)
 	log.Println("Libp2p host started with PeerID", libp2phost.ID())
-	// This connects to public bootstrappers
-	for _, addr := range dht.DefaultBootstrapPeers {
-		pi, _ := peer.AddrInfoFromP2pAddr(addr)
-		// We ignore errors as some bootstrap peers may be down
-		// and that is fine.
-		libp2phost.Connect(ctx, *pi)
-	}
+
 	return libp2phost, idht, err
 }
 func ConnectToPeer(ctx context.Context, p2phost host.Host, hostRouting routing.PeerRouting, peerID peer.ID) (err error) {
