@@ -12,7 +12,6 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/routing"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
-	libp2pquic "github.com/libp2p/go-libp2p-quic-transport"
 	libp2ptls "github.com/libp2p/go-libp2p-tls"
 )
 
@@ -38,13 +37,13 @@ func CreateLibp2pHost(ctx context.Context, tcpPort, quicUdpPort string, psk []by
 	options = append(options,
 		libp2p.Security(libp2ptls.ID, libp2ptls.New))
 
-	// support QUIC
-	options = append(options,
-		libp2p.Transport(libp2pquic.NewTransport))
+	//Configure private network
+	options = append(options, libp2p.PrivateNetwork(psk))
 
 	// support any other default transports (TCP)
 	options = append(options,
 		libp2p.DefaultTransports)
+
 	// Let's prevent our peer from having too many
 	// connections by attaching a connection manager.
 	options = append(options,
@@ -62,7 +61,6 @@ func CreateLibp2pHost(ctx context.Context, tcpPort, quicUdpPort string, psk []by
 			idht, err = dht.New(ctx, h)
 			return idht, err
 		}))
-
 	// Let this host use relays and advertise itself on relays if
 	// it finds it is behind NAT. Use libp2p.Relay(options...) to
 	// enable active relays and more.
