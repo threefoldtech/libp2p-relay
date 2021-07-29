@@ -15,8 +15,10 @@ func main() {
 
 	var hexPSK string
 	var relay string
+	var remotePeerID string
 	flag.StringVar(&hexPSK, "psk", "", "32 bytes network PSK in hex")
 	flag.StringVar(&relay, "relay", "", "relay libp2p address")
+	flag.StringVar(&remotePeerID, "remote", "", "Peer ID to connect to")
 	flag.Parse()
 	if hexPSK == "" {
 		flag.Usage()
@@ -30,7 +32,7 @@ func main() {
 		log.Fatalln("The PSK should be 32 bytes")
 	}
 	libp2pctx := context.Background()
-	host, _, err := communication.CreateLibp2pHost(libp2pctx, "", "", psk)
+	host, dht, err := communication.CreateLibp2pHost(libp2pctx, "", "", psk)
 	if err != nil {
 		panic(err)
 	}
@@ -44,7 +46,16 @@ func main() {
 		log.Fatalln(err)
 	}
 	for {
+
+		dht.RefreshRoutingTable()
+		if remotePeerID != "" {
+			if err = communication.ConnectToPeer(libp2pctx, host, dht, peer.ID(remotePeerID)); err != nil {
+				log.Println("Unable to connect to remote", err)
+			}
+		}
 		log.Println("Peers:", host.Peerstore().Peers())
+		log.Println("DHT peers:", dht.RoutingTable().GetPeerInfos())
 		time.Sleep(time.Second * 10)
+
 	}
 }
