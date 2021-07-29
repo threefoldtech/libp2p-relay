@@ -1,4 +1,4 @@
-package main
+package communication
 
 import (
 	"context"
@@ -13,28 +13,30 @@ import (
 	"github.com/libp2p/go-libp2p-core/routing"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	libp2pquic "github.com/libp2p/go-libp2p-quic-transport"
-	secio "github.com/libp2p/go-libp2p-secio"
 	libp2ptls "github.com/libp2p/go-libp2p-tls"
 )
 
 //CreateLibp2pHost creates a libp2p host with peerRouting enabled and connects to the bootstrap nodes
 // If privateKey is nil, a libp2p host is started without a predefined peerID
-func CreateLibp2pHost(ctx context.Context) (host.Host, *dht.IpfsDHT, error) {
+func CreateLibp2pHost(ctx context.Context, tcpPort, quicUdpPort string, psk []byte) (host.Host, *dht.IpfsDHT, error) {
 
+	if tcpPort == "" {
+		tcpPort = "0"
+	}
+	if quicUdpPort == "" {
+		quicUdpPort = "0"
+	}
 	var idht *dht.IpfsDHT
 	var err error
 	options := make([]libp2p.Option, 0, 0)
 	// Multiple listen addresses
 	options = append(options, libp2p.ListenAddrStrings(
-		"/ip4/0.0.0.0/tcp/0",      // regular tcp connections
-		"/ip4/0.0.0.0/udp/0/quic", // a UDP endpoint for the QUIC transport
+		"/ip4/0.0.0.0/tcp/"+tcpPort,             // regular tcp connections
+		"/ip4/0.0.0.0/udp/"+quicUdpPort+"/quic", // a UDP endpoint for the QUIC transport
 	))
 	// support TLS connections
 	options = append(options,
 		libp2p.Security(libp2ptls.ID, libp2ptls.New))
-	// support secio connections
-	options = append(options,
-		libp2p.Security(secio.ID, secio.New))
 
 	// support QUIC
 	options = append(options,
@@ -76,4 +78,17 @@ func CreateLibp2pHost(ctx context.Context) (host.Host, *dht.IpfsDHT, error) {
 		libp2phost.Connect(ctx, *pi)
 	}
 	return libp2phost, idht, err
+}
+func ConnectToPeer(ctx context.Context, p2phost host.Host, hostRouting routing.PeerRouting, peerID peer.ID) (err error) {
+
+	findPeerCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	peeraddrInfo, err := hostRouting.FindPeer(findPeerCtx, peerID)
+	if err != nil {
+		return
+	}
+	ConnectPeerCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	err = p2phost.Connect(ConnectPeerCtx, peeraddrInfo)
+	return
 }
