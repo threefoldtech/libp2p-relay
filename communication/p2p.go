@@ -3,21 +3,19 @@ package communication
 import (
 	"context"
 	"log"
-	"time"
 
-	"github.com/libp2p/go-libp2p-core/host"
+	"github.com/libp2p/go-libp2p/core/host"
 
 	"github.com/libp2p/go-libp2p"
-	connmgr "github.com/libp2p/go-libp2p-connmgr"
-	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/libp2p/go-libp2p-core/routing"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
-	libp2ptls "github.com/libp2p/go-libp2p-tls"
+	"github.com/libp2p/go-libp2p/core/peer"
+	"github.com/libp2p/go-libp2p/core/routing"
+	"github.com/libp2p/go-libp2p/p2p/net/connmgr"
 )
 
 //CreateLibp2pHost creates a libp2p host with peerRouting enabled and connects to the bootstrap nodes
 // If privateKey is nil, a libp2p host is started without a predefined peerID
-func CreateLibp2pHost(ctx context.Context, tcpPort, quicUdpPort string, psk []byte) (host.Host, *dht.IpfsDHT, error) {
+func CreateLibp2pHost(ctx context.Context, tcpPort, quicUdpPort string, psk []byte) (p2phost host.Host, peerRouting routing.PeerRouting, err error) {
 
 	if tcpPort == "" {
 		tcpPort = "0"
@@ -26,7 +24,6 @@ func CreateLibp2pHost(ctx context.Context, tcpPort, quicUdpPort string, psk []by
 		quicUdpPort = "0"
 	}
 	var idht *dht.IpfsDHT
-	var err error
 	options := make([]libp2p.Option, 0, 0)
 	// Multiple listen addresses
 	options = append(options, libp2p.ListenAddrStrings(
@@ -34,8 +31,8 @@ func CreateLibp2pHost(ctx context.Context, tcpPort, quicUdpPort string, psk []by
 		"/ip4/0.0.0.0/udp/"+quicUdpPort+"/quic", // a UDP endpoint for the QUIC transport
 	))
 	// support TLS connections
-	options = append(options,
-		libp2p.Security(libp2ptls.ID, libp2ptls.New))
+	//options = append(options,
+	//	libp2p.Security(libp2ptls.ID, libp2ptls.New))
 
 	//Configure private network
 	options = append(options, libp2p.PrivateNetwork(psk))
@@ -46,12 +43,15 @@ func CreateLibp2pHost(ctx context.Context, tcpPort, quicUdpPort string, psk []by
 
 	// Let's prevent our peer from having too many
 	// connections by attaching a connection manager.
+	cmgr, err := connmgr.NewConnManager(
+		100, // Lowwater
+		400, // HighWater,
+	)
+	if err != nil {
+		return
+	}
 	options = append(options,
-		libp2p.ConnectionManager(connmgr.NewConnManager(
-			100,         // Lowwater
-			400,         // HighWater,
-			time.Minute, // GracePeriod
-		)))
+		libp2p.ConnectionManager(cmgr))
 	// Attempt to open ports using uPNP for NATed hosts.
 	options = append(options,
 		libp2p.NATPortMap())
@@ -66,7 +66,7 @@ func CreateLibp2pHost(ctx context.Context, tcpPort, quicUdpPort string, psk []by
 	// enable active relays and more.
 	options = append(options, libp2p.EnableAutoRelay())
 
-	libp2phost, err := libp2p.New(ctx, options...)
+	libp2phost, err := libp2p.New(options...)
 	log.Println("Libp2p host started with PeerID", libp2phost.ID())
 
 	return libp2phost, idht, err

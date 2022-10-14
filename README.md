@@ -1,10 +1,6 @@
 # libp2p-relay
 
 Some projects of Threefold Tech or that Threefold Tech supports rely on [libp2p](https://libp2p.io) peer routing.
-Libp2p ipfs DHT's for peer routing seems to provide unstable peer routing when bootstrapping through the public libp2p bootstrap nodes.
-
-One of the reasons that using the public bootstrap nodes and relay nodes is not working reliably might be that too many projects use libp2p public relay nodes causing people to disable public relaying.
-
 This project provides an implementation for relay nodes that can be used to provide reliable peer routing.
 
 ## Private network

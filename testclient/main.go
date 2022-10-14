@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/threefoldtech/libp2p-relay/communication"
 )
 
@@ -32,7 +32,7 @@ func main() {
 		log.Fatalln("The PSK should be 32 bytes")
 	}
 	libp2pctx := context.Background()
-	host, dht, err := communication.CreateLibp2pHost(libp2pctx, "", "", psk)
+	host, peerRouting, err := communication.CreateLibp2pHost(libp2pctx, "", "", psk)
 	if err != nil {
 		panic(err)
 	}
@@ -41,20 +41,19 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
+
 	err = host.Connect(libp2pctx, *pi)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	for {
 
-		dht.RefreshRoutingTable()
 		if remotePeerID != "" {
-			if err = communication.ConnectToPeer(libp2pctx, host, dht, peer.ID(remotePeerID)); err != nil {
+			if err = communication.ConnectToPeer(libp2pctx, host, peerRouting, peer.ID(remotePeerID)); err != nil {
 				log.Println("Unable to connect to remote", err)
 			}
 		}
 		log.Println("Peers:", host.Peerstore().Peers())
-		log.Println("DHT peers:", dht.RoutingTable().GetPeerInfos())
 		time.Sleep(time.Second * 10)
 
 	}
