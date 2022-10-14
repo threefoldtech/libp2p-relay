@@ -26,9 +26,8 @@ func main() {
 		log.Fatalln("The PSK should be 32 bytes")
 	}
 	tcpPort := "51161"
-	quicUdpPort := "64253"
 	libp2pctx := context.Background()
-	host, _, err := communication.CreateLibp2pHost(libp2pctx, tcpPort, quicUdpPort, psk)
+	host, _, err := communication.CreateLibp2pHost(libp2pctx, tcpPort, psk)
 	if err != nil {
 		panic(err)
 	}

@@ -15,20 +15,16 @@ import (
 
 //CreateLibp2pHost creates a libp2p host with peerRouting enabled and connects to the bootstrap nodes
 // If privateKey is nil, a libp2p host is started without a predefined peerID
-func CreateLibp2pHost(ctx context.Context, tcpPort, quicUdpPort string, psk []byte) (p2phost host.Host, peerRouting routing.PeerRouting, err error) {
+func CreateLibp2pHost(ctx context.Context, tcpPort string, psk []byte) (p2phost host.Host, peerRouting routing.PeerRouting, err error) {
 
 	if tcpPort == "" {
 		tcpPort = "0"
-	}
-	if quicUdpPort == "" {
-		quicUdpPort = "0"
 	}
 	var idht *dht.IpfsDHT
 	options := make([]libp2p.Option, 0, 0)
 	// Multiple listen addresses
 	options = append(options, libp2p.ListenAddrStrings(
-		"/ip4/0.0.0.0/tcp/"+tcpPort,             // regular tcp connections
-		"/ip4/0.0.0.0/udp/"+quicUdpPort+"/quic", // a UDP endpoint for the QUIC transport
+		"/ip4/0.0.0.0/tcp/"+tcpPort, // regular tcp connections
 	))
 	// support TLS connections
 	//options = append(options,
