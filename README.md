@@ -3,6 +3,20 @@
 Some projects of Threefold Tech or that Threefold Tech supports rely on [libp2p](https://libp2p.io) peer routing.
 This project provides an implementation for relay nodes that can be used to provide reliable peer routing.
 
+## Flow
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Relay
+    participant Daemon 
+    Daemon -->> Relay: Connect(RelayAddress) 
+    Client -->> Relay: Connect(RelayAddress)
+    Client-->> Client:FindPeer(DaemonID)
+    Client -->> +Daemon: Request
+    Daemon -->> -Client:Response
+```
+
 ## Private network
 
 Since we only care about providing reliable peer routing for our own projects we create a private libp2p network with multiple relay nodes. This way the peer routing's dht is only populated with nodes within the private network.
