@@ -38,6 +38,13 @@ Any 32 (pseudo)random bytes are good, this is an example of how to create a PSK 
 hexdump -n 32 -e '8/4 "%08x" 1 "\n"' /dev/urandom
 ```
 
+Or in python:
+
+```python
+import os,binascii
+binascii.b2a_hex(os.urandom(32))
+```
+
 ### Security
 
 Applications using the relay nodes and private network should NOT assume all traffic and connections are from trusted parties. Pre-shared private keys are known to leak and it is shared with multiple applications.
