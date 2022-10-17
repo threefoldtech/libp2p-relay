@@ -32,7 +32,7 @@ func main() {
 		log.Fatalln("The PSK should be 32 bytes")
 	}
 	libp2pctx := context.Background()
-	host, peerRouting, err := communication.CreateLibp2pHost(libp2pctx, "", psk)
+	host, peerRouting, err := communication.CreateLibp2pHost(libp2pctx, 0, psk)
 	if err != nil {
 		panic(err)
 	}
