@@ -17,7 +17,7 @@ func main() {
 	var relay string
 	var remotePeerID string
 	flag.StringVar(&hexPSK, "psk", "", "32 bytes network PSK in hex")
-	flag.StringVar(&relay, "relay", "", "relay libp2p address")
+	flag.StringVar(&relay, "relay", "", "relay libp2p multi=address")
 	flag.StringVar(&remotePeerID, "remote", "", "Peer ID to connect to")
 	flag.Parse()
 	if hexPSK == "" {
