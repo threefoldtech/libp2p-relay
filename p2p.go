@@ -12,6 +12,8 @@ import (
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p/core/routing"
 	"github.com/libp2p/go-libp2p/p2p/net/connmgr"
+
+	"github.com/libp2p/go-libp2p/p2p/protocol/circuitv1/relay"
 )
 
 //CreateLibp2pHost creates a libp2p host with a dht in server mode to the bootstrap nodes
@@ -61,13 +63,15 @@ func CreateLibp2pHost(ctx context.Context, tcpPort int, psk []byte, libp2pPrivKe
 			idht, err = dht.New(ctx, h, dht.Mode(dht.ModeServer))
 			return idht, err
 		}))
-	// Let this host use relays and advertise itself on relays if
-	// it finds it is behind NAT. Use libp2p.Relay(options...) to
-	// enable active relays and more.
-	options = append(options, libp2p.EnableAutoRelay())
 
 	libp2phost, err := libp2p.New(options...)
 	log.Println("Libp2p host started with PeerID", libp2phost.ID())
 
 	return libp2phost, idht, err
+}
+
+func SetupRelay(p2phost host.Host) (r *relay.Relay, err error) {
+	r, err = relay.NewRelay(p2phost)
+
+	return
 }

@@ -56,10 +56,10 @@ func CreateLibp2pHost(ctx context.Context, tcpPort int, psk []byte, libp2pPrivKe
 	// Attempt to open ports using uPNP for NATed hosts.
 	options = append(options,
 		libp2p.NATPortMap())
-	// Enable the DHT as server
+	// Enable the DHT
 	options = append(options,
 		libp2p.Routing(func(h host.Host) (routing.PeerRouting, error) {
-			idht, err = dht.New(ctx, h, dht.Mode(dht.ModeServer))
+			idht, err = dht.New(ctx, h, dht.Mode(dht.ModeAuto))
 			return idht, err
 		}))
 	// Let this host use relays and advertise itself on relays if

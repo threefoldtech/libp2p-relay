@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"flag"
+	"fmt"
 	"log"
 	"time"
 )
@@ -27,13 +28,16 @@ func main() {
 	}
 	libp2pctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	host, _, err := CreateLibp2pHost(libp2pctx, tcpPort, psk, nil)
+	p2pHost, _, err := CreateLibp2pHost(libp2pctx, tcpPort, psk, nil)
 	if err != nil {
 		panic(err)
 	}
-	log.Println("Started libp2p host on", host.Addrs())
-
+	log.Println("Started libp2p host on", p2pHost.Addrs())
+	//Set up the host as a relay
+	r, err := SetupRelay(p2pHost)
+	defer r.Close()
 	for {
-		time.Sleep(time.Second * 10)
+		fmt.Println("My Peers:", p2pHost.Peerstore().Peers())
+		time.Sleep(time.Minute * 2)
 	}
 }
