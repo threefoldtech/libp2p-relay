@@ -6,8 +6,6 @@ import (
 	"flag"
 	"log"
 	"time"
-
-	"github.com/threefoldtech/libp2p-relay/communication"
 )
 
 func main() {
@@ -27,8 +25,9 @@ func main() {
 	if len(psk) != 32 {
 		log.Fatalln("The PSK should be 32 bytes")
 	}
-	libp2pctx := context.Background()
-	host, _, err := communication.CreateLibp2pHost(libp2pctx, tcpPort, psk)
+	libp2pctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	host, _, err := CreateLibp2pHost(libp2pctx, tcpPort, psk, nil)
 	if err != nil {
 		panic(err)
 	}
