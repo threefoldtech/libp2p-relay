@@ -1,4 +1,4 @@
-package main
+package client
 
 import (
 	"context"
@@ -72,6 +72,7 @@ func CreateLibp2pHost(ctx context.Context, tcpPort int, psk []byte, libp2pPrivKe
 
 	return libp2phost, idht, err
 }
+
 func ConnectToPeer(ctx context.Context, p2phost host.Host, hostRouting routing.PeerRouting, peerID peer.ID) (err error) {
 
 	findPeerCtx, cancel := context.WithCancel(ctx)
