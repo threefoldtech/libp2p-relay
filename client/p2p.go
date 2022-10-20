@@ -7,6 +7,7 @@ import (
 
 	"github.com/libp2p/go-libp2p/core/crypto"
 	"github.com/libp2p/go-libp2p/core/host"
+	"github.com/libp2p/go-libp2p/p2p/transport/tcp"
 
 	"github.com/libp2p/go-libp2p"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
@@ -16,15 +17,18 @@ import (
 )
 
 //CreateLibp2pHost creates a libp2p host with a dht in server mode to the bootstrap nodes
+//listen idicates wether or not a tcpport should be opened for the host to listen on.
 //If privateKey is nil, a libp2p host is started without a predefined peerID
-func CreateLibp2pHost(ctx context.Context, tcpPort int, psk []byte, libp2pPrivKey crypto.PrivKey) (p2phost host.Host, peerRouting routing.PeerRouting, err error) {
+func CreateLibp2pHost(ctx context.Context, tcpPort int, listen bool, psk []byte, libp2pPrivKey crypto.PrivKey, relays []peer.AddrInfo) (p2phost host.Host, peerRouting routing.PeerRouting, err error) {
 
 	var idht *dht.IpfsDHT
 	options := make([]libp2p.Option, 0, 0)
-	// Multiple listen addresses
-	options = append(options, libp2p.ListenAddrStrings(
-		fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", tcpPort), // regular tcp connections
-	))
+	// listen addresses
+	if listen {
+		options = append(options, libp2p.ListenAddrStrings(
+			fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", tcpPort), // regular tcp connections
+		))
+	}
 
 	// support TLS connections
 	//options = append(options,
@@ -37,9 +41,10 @@ func CreateLibp2pHost(ctx context.Context, tcpPort int, psk []byte, libp2pPrivKe
 		options = append(options, libp2p.Identity(libp2pPrivKey))
 	}
 
-	// support any other default transports (TCP)
-	options = append(options,
-		libp2p.DefaultTransports)
+	//Explicitely set the transports to disable quic since it does not support private networks
+	options = append(options, libp2p.ChainOptions(
+		libp2p.Transport(tcp.NewTCPTransport),
+	))
 
 	// Let's prevent our peer from having too many
 	// connections by attaching a connection manager.
@@ -59,12 +64,11 @@ func CreateLibp2pHost(ctx context.Context, tcpPort int, psk []byte, libp2pPrivKe
 	// Enable the DHT
 	options = append(options,
 		libp2p.Routing(func(h host.Host) (routing.PeerRouting, error) {
-			idht, err = dht.New(ctx, h, dht.Mode(dht.ModeAuto))
+			idht, err = dht.New(ctx, h, dht.BootstrapPeers(relays...), dht.Mode(dht.ModeAuto))
 			return idht, err
 		}))
 	// Let this host use relays and advertise itself on relays if
-	// it finds it is behind NAT. Use libp2p.Relay(options...) to
-	// enable active relays and more.
+	// it finds it is behind NAT.
 	options = append(options, libp2p.EnableAutoRelay())
 
 	libp2phost, err := libp2p.New(options...)

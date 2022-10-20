@@ -12,6 +12,7 @@ import (
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p/core/routing"
 	"github.com/libp2p/go-libp2p/p2p/net/connmgr"
+	"github.com/libp2p/go-libp2p/p2p/transport/tcp"
 
 	"github.com/libp2p/go-libp2p/p2p/protocol/circuitv1/relay"
 )
@@ -38,9 +39,10 @@ func CreateLibp2pHost(ctx context.Context, tcpPort int, psk []byte, libp2pPrivKe
 		options = append(options, libp2p.Identity(libp2pPrivKey))
 	}
 
-	// support any other default transports (TCP)
-	options = append(options,
-		libp2p.DefaultTransports)
+	//Explicitely set the transports to disable quic since it does not support private networks
+	options = append(options, libp2p.ChainOptions(
+		libp2p.Transport(tcp.NewTCPTransport),
+	))
 
 	// Let's prevent our peer from having too many
 	// connections by attaching a connection manager.
