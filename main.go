@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/ed25519"
 	"encoding/hex"
 	"flag"
 	"fmt"
@@ -9,13 +10,17 @@ import (
 	"time"
 
 	logging "github.com/ipfs/go-log/v2"
+
+	"github.com/libp2p/go-libp2p/core/crypto"
 )
 
 func main() {
 	var hexPSK string
+	var hexPrivateKey string
 	var tcpPort int
 	var verbose bool
 	flag.StringVar(&hexPSK, "psk", "", "32 bytes network preshared Key in hex")
+	flag.StringVar(&hexPrivateKey, "idkey", "", "32 byte private key of the p2p Identity, if not provided, a random ID is generated")
 	flag.IntVar(&tcpPort, "port", 0, "TCP port to listen on, if not set, a random port is taken")
 	flag.BoolVar(&verbose, "verbose", false, "enable libp2p debug logging")
 	flag.Parse()
@@ -30,13 +35,29 @@ func main() {
 	if len(psk) != 32 {
 		log.Fatalln("The PSK should be 32 bytes")
 	}
+	var privKey crypto.PrivKey
+	if hexPrivateKey != "" {
+		privKeySeed, err := hex.DecodeString(hexPrivateKey)
+		if err != nil {
+			log.Fatalln("Unable to hex decode the idkey", err)
+		}
+		if len(privKeySeed) != 32 {
+			log.Fatalln("The idKey should be 32 bytes")
+		}
+		privKey, err = crypto.UnmarshalEd25519PrivateKey(
+			ed25519.NewKeyFromSeed(privKeySeed),
+		)
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}
 	if verbose {
 		logging.SetDebugLogging()
 	}
 
 	libp2pctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	p2pHost, _, err := CreateLibp2pHost(libp2pctx, tcpPort, psk, nil)
+	p2pHost, _, err := CreateLibp2pHost(libp2pctx, tcpPort, psk, privKey)
 	if err != nil {
 		panic(err)
 	}
