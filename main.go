@@ -14,16 +14,25 @@ import (
 	"github.com/libp2p/go-libp2p/core/crypto"
 )
 
+var Version = "development"
+
 func main() {
 	var hexPSK string
 	var hexPrivateKey string
 	var tcpPort int
 	var verbose bool
+	var version bool
+
 	flag.StringVar(&hexPSK, "psk", "", "32 bytes network preshared Key in hex")
 	flag.StringVar(&hexPrivateKey, "idkey", "", "32 byte private key of the p2p Identity, if not provided, a random ID is generated")
 	flag.IntVar(&tcpPort, "port", 0, "TCP port to listen on, if not set, a random port is taken")
 	flag.BoolVar(&verbose, "verbose", false, "enable libp2p debug logging")
+	flag.BoolVar(&version, "version", false, "print version and exit")
 	flag.Parse()
+	if version {
+		fmt.Println(Version)
+		return
+	}
 	if hexPSK == "" {
 		flag.Usage()
 		log.Fatalln("The psk flag is required")

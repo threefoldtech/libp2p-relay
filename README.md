@@ -50,3 +50,7 @@ binascii.b2a_hex(os.urandom(32))
 Applications using the relay nodes and private network should NOT assume all traffic and connections are from trusted parties. Pre-shared private keys are known to leak and it is shared with multiple applications.
 
 A leaked PSK is not a problem either as long as the relaying functionality stays reliable. This does not mean one should hardcode it and submit it to a public github repository off course.
+
+## Release build
+
+The `release.sh` script builds a release version for linux/amd64 in a `dist` folder.
