@@ -11,7 +11,7 @@ sequenceDiagram
     participant Daemon 
     Daemon -->> Relay: Connect(RelayAddress) 
     Client -->> Relay: Connect(RelayAddress)
-    Client-->> Client:FindPeer(DaemonID)
+    Client -->> Client:FindPeer(DaemonID)
     Client -->> +Daemon: echo(Message)
     Daemon -->> -Client:Message
 ```
@@ -33,7 +33,7 @@ Start the relay
 ../libp2p-relay -psk=1ab7e23edf1a951da91cab2d5d77b434936d85fda6bf0fd984e7aed557aab2a0 -idkey=a86c383a07191d0501f6eb6d29bfcc031126e25a64a0ddd632a1b6e0d4a562d2
 ```
 
-In another shell, start the damon
+In another shell, start the daemon
 
 ```sh
 echodaemon/echodaemon -psk=1ab7e23edf1a951da91cab2d5d77b434936d85fda6bf0fd984e7aed557aab2a0 -relay=/ip4/127.0.0.1/tcp/<relay listening port>/p2p/12D3KooWPo5j8T2fxEGeUmVDtf2gi3mNtypMTfFqzAQYPz5ii7mw
