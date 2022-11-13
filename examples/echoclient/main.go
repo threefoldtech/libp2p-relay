@@ -85,8 +85,8 @@ func main() {
 	for {
 
 		log.Println("Peers:", p2pHost.Peerstore().Peers())
-		if err = client.ConnectToPeer(libp2pctx, p2pHost, peerRouting, targetID); err != nil {
-			log.Println("Unable to connect to remote", err)
+		if err = client.ConnectToPeer(libp2pctx, p2pHost, peerRouting, relayAddrInfo, targetID); err != nil {
+			log.Println("Unable to connect to remote:", err)
 		}
 		err = sayHello(p2pHost, targetID)
 		if err != nil {

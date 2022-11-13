@@ -49,4 +49,4 @@ echoclient/echoclient -psk=1ab7e23edf1a951da91cab2d5d77b434936d85fda6bf0fd984e7a
 
 In the above example, the daemon was reachable by the client. The dht propagated the address to client and the communication was done without the relay forwarding the messages.
 
-To simulate a daemon that's inaccessible to the client, add the `-listen=false` f;lag to the daemon command.
+To simulate a daemon that's inaccessible to the client, add the `-listen=false` flag to the daemon command.

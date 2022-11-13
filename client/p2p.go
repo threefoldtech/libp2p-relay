@@ -2,12 +2,14 @@ package client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 
 	"github.com/libp2p/go-libp2p/core/crypto"
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/p2p/transport/tcp"
+	"github.com/multiformats/go-multiaddr"
 
 	"github.com/libp2p/go-libp2p"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
@@ -77,13 +79,25 @@ func CreateLibp2pHost(ctx context.Context, tcpPort int, listen bool, psk []byte,
 	return libp2phost, idht, err
 }
 
-func ConnectToPeer(ctx context.Context, p2phost host.Host, hostRouting routing.PeerRouting, peerID peer.ID) (err error) {
+func ConnectToPeer(ctx context.Context, p2phost host.Host, hostRouting routing.PeerRouting, relay *peer.AddrInfo, peerID peer.ID) (err error) {
 
 	findPeerCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	peeraddrInfo, err := hostRouting.FindPeer(findPeerCtx, peerID)
 	if err != nil {
-		return
+		if errors.Is(err, routing.ErrNotFound) && relay != nil {
+			targetMA, e := multiaddr.NewMultiaddr("/p2p/" + relay.ID.String() + "/p2p-circuit/p2p/" + peerID.String())
+			if e != nil {
+				err = e
+				return
+			}
+			peeraddrInfo = peer.AddrInfo{
+				ID:    peerID,
+				Addrs: []multiaddr.Multiaddr{targetMA},
+			}
+		} else {
+			return
+		}
 	}
 	ConnectPeerCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
