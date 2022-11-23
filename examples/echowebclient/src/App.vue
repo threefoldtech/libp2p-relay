@@ -3,16 +3,19 @@
     <img alt="Threefold logo"  class="logo" src="@/assets/tf_logo.svg" width="200">
     <HelloWorld msg="libp2p echo client example"/>
   </header>
+  <EchoClient/>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
 import HelloWorld from './components/HelloWorld.vue'
+import EchoClient from './components/EchoClient.vue'
 
 export default defineComponent({
   name: 'App',
   components: {
-    HelloWorld
+    HelloWorld,
+    EchoClient
   }
 })
 </script>
