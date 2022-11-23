@@ -13,20 +13,32 @@ import (
 	"github.com/libp2p/go-libp2p/core/routing"
 	"github.com/libp2p/go-libp2p/p2p/net/connmgr"
 	"github.com/libp2p/go-libp2p/p2p/transport/tcp"
+	ws "github.com/libp2p/go-libp2p/p2p/transport/websocket"
 
 	"github.com/libp2p/go-libp2p/p2p/protocol/circuitv1/relay"
 )
 
 //CreateLibp2pHost creates a libp2p host with a dht in server mode to the bootstrap nodes
 //If privateKey is nil, a libp2p host is started without a predefined peerID
-func CreateLibp2pHost(ctx context.Context, tcpPort int, psk []byte, libp2pPrivKey crypto.PrivKey) (p2phost host.Host, peerRouting routing.PeerRouting, err error) {
+//the tcpPort and the wsPort (websockets) can not be the same
+func CreateLibp2pHost(ctx context.Context, tcpPort, wsport int, psk []byte, libp2pPrivKey crypto.PrivKey) (p2phost host.Host, peerRouting routing.PeerRouting, err error) {
 
 	var idht *dht.IpfsDHT
 	options := make([]libp2p.Option, 0, 0)
-	// Multiple listen addresses
+
+	// listen addresses
+
+	// regular tcp connections
 	options = append(options, libp2p.ListenAddrStrings(
-		fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", tcpPort), // regular tcp connections
+		fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", tcpPort),
 	))
+
+	// websocket connections
+	if wsport >= 0 {
+		options = append(options, libp2p.ListenAddrStrings(
+			fmt.Sprintf("/ip4/0.0.0.0/tcp/%d/ws", wsport),
+		))
+	}
 
 	// support TLS connections
 	//options = append(options,
@@ -42,6 +54,7 @@ func CreateLibp2pHost(ctx context.Context, tcpPort int, psk []byte, libp2pPrivKe
 	//Explicitely set the transports to disable quic since it does not support private networks
 	options = append(options, libp2p.ChainOptions(
 		libp2p.Transport(tcp.NewTCPTransport),
+		libp2p.Transport(ws.New),
 	))
 
 	// Let's prevent our peer from having too many

@@ -20,12 +20,14 @@ func main() {
 	var hexPSK string
 	var hexPrivateKey string
 	var tcpPort int
+	var wsPort int
 	var verbose bool
 	var version bool
 
 	flag.StringVar(&hexPSK, "psk", "", "32 bytes network preshared Key in hex")
 	flag.StringVar(&hexPrivateKey, "idkey", "", "32 byte private key of the p2p Identity, if not provided, a random ID is generated")
 	flag.IntVar(&tcpPort, "port", 0, "TCP port to listen on, if not set, a random port is taken")
+	flag.IntVar(&wsPort, "wsport", -1, "websocket port to listen on, if not set, websockets are disabled")
 	flag.BoolVar(&verbose, "verbose", false, "enable libp2p debug logging")
 	flag.BoolVar(&version, "version", false, "print version and exit")
 	flag.Parse()
@@ -66,7 +68,7 @@ func main() {
 
 	libp2pctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	p2pHost, _, err := CreateLibp2pHost(libp2pctx, tcpPort, psk, privKey)
+	p2pHost, _, err := CreateLibp2pHost(libp2pctx, tcpPort, wsPort, psk, privKey)
 	if err != nil {
 		panic(err)
 	}
