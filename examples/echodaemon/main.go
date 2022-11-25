@@ -12,6 +12,8 @@ import (
 
 	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/threefoldtech/libp2p-relay/client"
+
+	logging "github.com/ipfs/go-log/v2"
 )
 
 const Protocol = "/echo/1.0.0"
@@ -33,9 +35,11 @@ func main() {
 	var hexPSK string
 	var relay string
 	var listen bool
+	var verbose bool
 	flag.StringVar(&hexPSK, "psk", "", "32 bytes network PSK in hex")
 	flag.StringVar(&relay, "relay", "", "relay multi-address")
 	flag.BoolVar(&listen, "listen", true, "open a tcp port to listen on")
+	flag.BoolVar(&verbose, "verbose", false, "enable libp2p debug logging")
 	flag.Parse()
 	if hexPSK == "" {
 		flag.Usage()
@@ -52,6 +56,10 @@ func main() {
 	relayAddrInfo, err := peer.AddrInfoFromString(relay)
 	if err != nil {
 		log.Fatalln(err)
+	}
+
+	if verbose {
+		logging.SetDebugLogging()
 	}
 	libp2pctx := context.Background()
 	p2pHost, _, err := client.CreateLibp2pHost(libp2pctx, 0, listen, psk, nil, []peer.AddrInfo{*relayAddrInfo})
