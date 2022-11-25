@@ -7,6 +7,7 @@ import { webSockets } from '@libp2p/websockets'
 import { all } from '@libp2p/websockets/filters'
 import { noise } from '@chainsafe/libp2p-noise'
 import { mplex } from '@libp2p/mplex'
+import { yamux } from '@chainsafe/libp2p-yamux'
 import { preSharedKey } from 'libp2p/pnet'
 import { Buffer } from 'buffer'
 import { bootstrap } from '@libp2p/bootstrap'
@@ -31,7 +32,7 @@ export default defineComponent({
         })
         ],
         connectionEncryption: [noise()],
-        streamMuxers: [mplex()],
+        streamMuxers: [mplex(), yamux()],
         connectionProtector: preSharedKey({
           psk: swarmKey
         }),
