@@ -3,11 +3,13 @@ package main
 import (
 	"bufio"
 	"context"
+	"crypto/ed25519"
 	"encoding/hex"
 	"flag"
 	"log"
 	"time"
 
+	"github.com/libp2p/go-libp2p/core/crypto"
 	"github.com/libp2p/go-libp2p/core/peer"
 
 	"github.com/libp2p/go-libp2p/core/network"
@@ -33,11 +35,13 @@ func doEcho(s network.Stream) error {
 func main() {
 
 	var hexPSK string
+	var hexPrivateKey string
 	var relay string
 	var listen bool
 	var verbose bool
 	flag.StringVar(&hexPSK, "psk", "", "32 bytes network PSK in hex")
 	flag.StringVar(&relay, "relay", "", "relay multi-address")
+	flag.StringVar(&hexPrivateKey, "idkey", "", "32 byte private key of the p2p Identity, if not provided, a random ID is generated")
 	flag.BoolVar(&listen, "listen", true, "open a tcp port to listen on")
 	flag.BoolVar(&verbose, "verbose", false, "enable libp2p debug logging")
 	flag.Parse()
@@ -58,11 +62,28 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	var privKey crypto.PrivKey
+	if hexPrivateKey != "" {
+		privKeySeed, err := hex.DecodeString(hexPrivateKey)
+		if err != nil {
+			log.Fatalln("Unable to hex decode the idkey", err)
+		}
+		if len(privKeySeed) != 32 {
+			log.Fatalln("The idKey should be 32 bytes")
+		}
+		privKey, err = crypto.UnmarshalEd25519PrivateKey(
+			ed25519.NewKeyFromSeed(privKeySeed),
+		)
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}
+
 	if verbose {
 		logging.SetDebugLogging()
 	}
 	libp2pctx := context.Background()
-	p2pHost, _, err := client.CreateLibp2pHost(libp2pctx, 0, listen, psk, nil, []peer.AddrInfo{*relayAddrInfo})
+	p2pHost, _, err := client.CreateLibp2pHost(libp2pctx, 0, listen, psk, privKey, []peer.AddrInfo{*relayAddrInfo})
 	if err != nil {
 		panic(err)
 	}
