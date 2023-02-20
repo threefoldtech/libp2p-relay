@@ -35,7 +35,7 @@ A private network is defined by a 256-bit secret key, the pre-shared key (PSK) w
 Any 32 (pseudo)random bytes are good, this is an example of how to create a PSK in hex on the commandline:
 
 ```sh
-hexdump -n 32 -e '8/4 "%08x" 1 "\n"' /dev/urandom
+openssl rand -hex 32
 ```
 
 Or in python:
