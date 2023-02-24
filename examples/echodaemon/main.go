@@ -13,6 +13,7 @@ import (
 	"github.com/libp2p/go-libp2p/core/peer"
 
 	"github.com/libp2p/go-libp2p/core/network"
+	circuitclient "github.com/libp2p/go-libp2p/p2p/protocol/circuitv2/client"
 	"github.com/threefoldtech/libp2p-relay/client"
 
 	logging "github.com/ipfs/go-log/v2"
@@ -32,8 +33,8 @@ func doEcho(s network.Stream) error {
 	_, err = s.Write([]byte(str))
 	return err
 }
-func main() {
 
+func main() {
 	var hexPSK string
 	var hexPrivateKey string
 	var relay string
@@ -82,11 +83,19 @@ func main() {
 	if verbose {
 		logging.SetDebugLogging()
 	}
+
 	libp2pctx := context.Background()
 	p2pHost, _, err := client.CreateLibp2pHost(libp2pctx, 0, listen, psk, privKey, []peer.AddrInfo{*relayAddrInfo})
 	if err != nil {
 		panic(err)
 	}
+
+	// reserve a slot on the relay
+	_, err = circuitclient.Reserve(libp2pctx, p2pHost, *relayAddrInfo)
+	if err != nil {
+		panic(err)
+	}
+
 	log.Println("Started libp2p host on", p2pHost.Addrs())
 
 	// Set a stream handler on the host.

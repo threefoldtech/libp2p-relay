@@ -24,7 +24,7 @@ import (
 func CreateLibp2pHost(ctx context.Context, tcpPort, wsport int, psk []byte, libp2pPrivKey crypto.PrivKey) (p2phost host.Host, peerRouting routing.PeerRouting, err error) {
 
 	var idht *dht.IpfsDHT
-	options := make([]libp2p.Option, 0, 0)
+	options := make([]libp2p.Option, 0)
 
 	// listen addresses
 
@@ -86,7 +86,5 @@ func CreateLibp2pHost(ctx context.Context, tcpPort, wsport int, psk []byte, libp
 }
 
 func SetupRelay(p2phost host.Host) (r *relay.Relay, err error) {
-	r, err = relay.New(p2phost)
-
-	return
+	return relay.New(p2phost, relay.WithResources(relay.DefaultResources()))
 }

@@ -75,6 +75,9 @@ func main() {
 	log.Println("Started libp2p host on", p2pHost.Addrs())
 	//Set up the host as a relay
 	r, err := SetupRelay(p2pHost)
+	if err != nil {
+		panic(err)
+	}
 	defer r.Close()
 	for {
 		fmt.Println("Peers:", p2pHost.Peerstore().Peers())

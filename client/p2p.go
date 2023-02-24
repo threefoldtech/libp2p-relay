@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 
@@ -18,13 +17,12 @@ import (
 	"github.com/libp2p/go-libp2p/p2p/net/connmgr"
 )
 
-//CreateLibp2pHost creates a libp2p host with a dht in server mode to the bootstrap nodes
-//listen idicates wether or not a tcpport should be opened for the host to listen on.
-//If privateKey is nil, a libp2p host is started without a predefined peerID
+// CreateLibp2pHost creates a libp2p host with a dht in server mode to the bootstrap nodes
+// listen idicates wether or not a tcpport should be opened for the host to listen on.
+// If privateKey is nil, a libp2p host is started without a predefined peerID
 func CreateLibp2pHost(ctx context.Context, tcpPort int, listen bool, psk []byte, libp2pPrivKey crypto.PrivKey, relays []peer.AddrInfo) (p2phost host.Host, peerRouting routing.PeerRouting, err error) {
-
 	var idht *dht.IpfsDHT
-	options := make([]libp2p.Option, 0, 0)
+	options := make([]libp2p.Option, 0)
 	// listen addresses
 	if listen {
 		options = append(options, libp2p.ListenAddrStrings(
@@ -71,7 +69,7 @@ func CreateLibp2pHost(ctx context.Context, tcpPort int, listen bool, psk []byte,
 		}))
 	// Let this host use relays and advertise itself on relays if
 	// it finds it is behind NAT.
-	options = append(options, libp2p.EnableAutoRelay())
+	options = append(options, libp2p.EnableAutoRelayWithStaticRelays(relays))
 
 	libp2phost, err := libp2p.New(options...)
 	log.Println("Libp2p host started with PeerID", libp2phost.ID())
@@ -80,27 +78,18 @@ func CreateLibp2pHost(ctx context.Context, tcpPort int, listen bool, psk []byte,
 }
 
 func ConnectToPeer(ctx context.Context, p2phost host.Host, hostRouting routing.PeerRouting, relay *peer.AddrInfo, peerID peer.ID) (err error) {
-
-	findPeerCtx, cancel := context.WithCancel(ctx)
-	defer cancel()
-	peeraddrInfo, err := hostRouting.FindPeer(findPeerCtx, peerID)
-	if err != nil {
-		if errors.Is(err, routing.ErrNotFound) && relay != nil {
-			targetMA, e := multiaddr.NewMultiaddr("/p2p/" + relay.ID.String() + "/p2p-circuit/p2p/" + peerID.String())
-			if e != nil {
-				err = e
-				return
-			}
-			peeraddrInfo = peer.AddrInfo{
-				ID:    peerID,
-				Addrs: []multiaddr.Multiaddr{targetMA},
-			}
-		} else {
-			return
-		}
+	targetMA, e := multiaddr.NewMultiaddr("/p2p/" + relay.ID.String() + "/p2p-circuit/p2p/" + peerID.String())
+	if e != nil {
+		err = e
+		return
 	}
+	peeraddrInfo := peer.AddrInfo{
+		ID:    peerID,
+		Addrs: []multiaddr.Multiaddr{targetMA},
+	}
+
 	ConnectPeerCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	err = p2phost.Connect(ConnectPeerCtx, peeraddrInfo)
-	return
+
+	return p2phost.Connect(ConnectPeerCtx, peeraddrInfo)
 }
