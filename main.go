@@ -68,19 +68,23 @@ func main() {
 
 	libp2pctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	p2pHost, _, err := CreateLibp2pHost(libp2pctx, tcpPort, wsPort, psk, privKey)
+	host, _, err := CreateLibp2pHost(libp2pctx, tcpPort, wsPort, psk, privKey)
 	if err != nil {
 		panic(err)
 	}
-	log.Println("Started libp2p host on", p2pHost.Addrs())
+	fmt.Printf("I am %s\n", host.ID())
+	fmt.Printf("Public Addresses:\n")
+	for _, addr := range host.Addrs() {
+		fmt.Printf("\t%s/p2p/%s\n", addr, host.ID())
+	}
 	//Set up the host as a relay
-	r, err := SetupRelay(p2pHost)
+	r, err := SetupRelay(host)
 	if err != nil {
 		panic(err)
 	}
 	defer r.Close()
 	for {
-		fmt.Println("Peers:", p2pHost.Peerstore().Peers())
+		fmt.Println("Peers:", host.Peerstore().Peers())
 		time.Sleep(time.Minute * 2)
 	}
 }
