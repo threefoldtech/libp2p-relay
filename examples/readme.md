@@ -8,8 +8,9 @@ An example where a daemon just echos whatever whatever message it gets.
 sequenceDiagram
     participant Client
     participant Relay
-    participant Daemon 
-    Daemon -->> Relay: Connect(RelayAddress) 
+    participant Daemon
+    Daemon -->> Relay: Reserve(RelayAddress)
+    Daemon -->> Relay: Connect(RelayAddress)
     Client -->> Relay: Connect(RelayAddress)
     Client -->> Client:FindPeer(DaemonID)
     Client -->> +Daemon: echo(Message)

@@ -22,11 +22,8 @@ import (
 // If privateKey is nil, a libp2p host is started without a predefined peerID
 // the tcpPort and the wsPort (websockets) can not be the same
 func CreateLibp2pHost(ctx context.Context, tcpPort, wsport int, psk []byte, libp2pPrivKey crypto.PrivKey) (p2phost host.Host, peerRouting routing.PeerRouting, err error) {
-
 	var idht *dht.IpfsDHT
 	options := make([]libp2p.Option, 0)
-
-	// listen addresses
 
 	// regular tcp connections
 	options = append(options, libp2p.ListenAddrStrings(

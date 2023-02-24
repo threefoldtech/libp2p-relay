@@ -72,7 +72,7 @@ func main() {
 	}
 
 	libp2pctx := context.Background()
-	p2pHost, peerRouting, err := client.CreateLibp2pHost(libp2pctx, 0, false, psk, nil, []peer.AddrInfo{*relayAddrInfo})
+	p2pHost, peerRouting, err := client.CreateLibp2pHost(libp2pctx, 0, false, psk, nil, []peer.AddrInfo{*relayAddrInfo}, false)
 	if err != nil {
 		panic(err)
 	}

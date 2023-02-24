@@ -15,12 +15,13 @@ import (
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/go-libp2p/core/routing"
 	"github.com/libp2p/go-libp2p/p2p/net/connmgr"
+	"github.com/libp2p/go-libp2p/p2p/protocol/circuitv2/client"
 )
 
 // CreateLibp2pHost creates a libp2p host with a dht in server mode to the bootstrap nodes
 // listen idicates wether or not a tcpport should be opened for the host to listen on.
 // If privateKey is nil, a libp2p host is started without a predefined peerID
-func CreateLibp2pHost(ctx context.Context, tcpPort int, listen bool, psk []byte, libp2pPrivKey crypto.PrivKey, relays []peer.AddrInfo) (p2phost host.Host, peerRouting routing.PeerRouting, err error) {
+func CreateLibp2pHost(ctx context.Context, tcpPort int, listen bool, psk []byte, libp2pPrivKey crypto.PrivKey, relays []peer.AddrInfo, reserve bool) (p2phost host.Host, peerRouting routing.PeerRouting, err error) {
 	var idht *dht.IpfsDHT
 	options := make([]libp2p.Option, 0)
 	// listen addresses
@@ -73,6 +74,16 @@ func CreateLibp2pHost(ctx context.Context, tcpPort int, listen bool, psk []byte,
 
 	libp2phost, err := libp2p.New(options...)
 	log.Println("Libp2p host started with PeerID", libp2phost.ID())
+
+	if reserve {
+		for _, relay := range relays {
+			// reserve a slot on the relay
+			_, err = client.Reserve(ctx, libp2phost, relay)
+			if err != nil {
+				return
+			}
+		}
+	}
 
 	return libp2phost, idht, err
 }
