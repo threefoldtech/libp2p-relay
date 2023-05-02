@@ -33,5 +33,5 @@ jobs:
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
           asset_path: ./dist/libp2p-relay_linux_amd64.tar.gz
-          asset_name: linux_amd64
+          asset_name: libp2p-relay_linux_amd64.tar.gz
           asset_content_type: application/gzip
