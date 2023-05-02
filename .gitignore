@@ -17,3 +17,4 @@ libp2p-relay
 examples/echoclient/echoclient
 examples/echodaemon/echodaemon
 dist
+vendor

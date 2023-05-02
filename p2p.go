@@ -15,12 +15,12 @@ import (
 	"github.com/libp2p/go-libp2p/p2p/transport/tcp"
 	ws "github.com/libp2p/go-libp2p/p2p/transport/websocket"
 
-	"github.com/libp2p/go-libp2p/p2p/protocol/circuitv1/relay"
+	"github.com/libp2p/go-libp2p/p2p/protocol/circuitv2/relay"
 )
 
-//CreateLibp2pHost creates a libp2p host with a dht in server mode to the bootstrap nodes
-//If privateKey is nil, a libp2p host is started without a predefined peerID
-//the tcpPort and the wsPort (websockets) can not be the same
+// CreateLibp2pHost creates a libp2p host with a dht in server mode to the bootstrap nodes
+// If privateKey is nil, a libp2p host is started without a predefined peerID
+// the tcpPort and the wsPort (websockets) can not be the same
 func CreateLibp2pHost(ctx context.Context, tcpPort, wsport int, psk []byte, libp2pPrivKey crypto.PrivKey) (p2phost host.Host, peerRouting routing.PeerRouting, err error) {
 
 	var idht *dht.IpfsDHT
@@ -70,8 +70,9 @@ func CreateLibp2pHost(ctx context.Context, tcpPort, wsport int, psk []byte, libp
 		libp2p.ConnectionManager(cmgr))
 
 	// Attempt to open ports using uPNP for NATed hosts.
-	options = append(options,
-		libp2p.NATPortMap())
+	// options = append(options,
+	// 	libp2p.NATPortMap())
+
 	// Enable the DHT as server
 	options = append(options,
 		libp2p.Routing(func(h host.Host) (routing.PeerRouting, error) {
@@ -86,7 +87,7 @@ func CreateLibp2pHost(ctx context.Context, tcpPort, wsport int, psk []byte, libp
 }
 
 func SetupRelay(p2phost host.Host) (r *relay.Relay, err error) {
-	r, err = relay.NewRelay(p2phost)
+	r, err = relay.New(p2phost)
 
 	return
 }

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/libp2p/go-libp2p/core/crypto"
+	"github.com/libp2p/go-libp2p/core/event"
 	"github.com/libp2p/go-libp2p/core/peer"
 
 	"github.com/libp2p/go-libp2p/core/network"
@@ -99,8 +100,10 @@ func main() {
 			s.Close()
 		}
 	})
+	//Force the relayfinder of the autorelay to start
+	emitReachabilityChanged, _ := p2pHost.EventBus().Emitter(new(event.EvtLocalReachabilityChanged))
+	emitReachabilityChanged.Emit(event.EvtLocalReachabilityChanged{Reachability: network.ReachabilityUnknown})
 
-	err = p2pHost.Connect(libp2pctx, *relayAddrInfo)
 	if err != nil {
 		log.Fatalln(err)
 	}
