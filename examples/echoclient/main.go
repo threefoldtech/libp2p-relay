@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"flag"
-	"io/ioutil"
+	"io"
 	"log"
 	"time"
 
@@ -21,7 +21,7 @@ import (
 const Protocol = "/echo/1.0.0"
 
 func sayHello(h host.Host, peerID peer.ID) (err error) {
-	log.Println("Trying to say hello to", peerID.Pretty())
+	log.Println("Trying to say hello to", peerID)
 	s, err := h.NewStream(context.Background(), peerID, Protocol)
 	if err != nil {
 		return
@@ -32,7 +32,7 @@ func sayHello(h host.Host, peerID peer.ID) (err error) {
 		return
 	}
 
-	out, err := ioutil.ReadAll(s)
+	out, err := io.ReadAll(s)
 	if err != nil {
 		return
 	}
